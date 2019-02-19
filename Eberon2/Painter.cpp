@@ -22,9 +22,14 @@ void Colorize::Pseudo_Clear(int option) {
 	case 5:
 		cout << string(12, '\n');
 		break;
+	case 6:
+		cout << string(5, '\n');
+		break;
 	}
 
 }
+
+
 
 
 void Colorize::Paint(int Color, std::string color_me, std::string extra) {
