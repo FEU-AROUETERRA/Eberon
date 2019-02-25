@@ -21,99 +21,158 @@ void Graph::Create(int y, int x)
 	init->yx.second = x;
 	init->title = "Starting area.";
 	init->description = "This place.";
+	init->previous = init;
 	Exists[init->yx] = init;
 	Current = Start = init;
+	Node_Count++;
 	cout << "\nStart node created.\n";
 }
 
 
-int Graph::Add_Node(Area *before, int code, int symbol, int color, pair<int, int> yx, string title, string description, int coordinate){
+int Graph::Add_Node(Area *before, int code, int symbol, int color, pair<int, int> yx, string title, string description, int coordinate, pair<int,int>& out){
 	bool passed = true;
 	//Check if YX is occupied, if true, connect current to yx instead
-	Area *ptr = Connect_Nodes(yx, coordinate);
-	if (ptr != NULL) {
+	pair<int, int> directed = Get_Directed(yx, coordinate);
+	if ((directed.first < 0 || directed.first > cX) || (directed.second < 0 || directed.second > cY)) {
+		return 0;
+	}
+	
+	Area* ptr = Connect_Nodes(yx, coordinate);
+
+	if (ptr != nullptr) {
+
 		switch (coordinate) {
 		case 0:
 			before->north = ptr;
-			ptr->south = before; return 2;
+			ptr->south = before; 
+			return 2;
+			break;
 		case 1:
 			before->east = ptr;
-			ptr->west = before; return 2;
+			ptr->west = before;
+			return 2;
+			break;
 		case 2:
 			before->south = ptr;
-			ptr->north = before; return 2;
+			ptr->north = before; 
+			return 2;
+			break;
 		case 3:
 			before->west = ptr; 
-			ptr->east = before; return 2;
+			ptr->east = before; 
+			return 2;
+			break;
 		}
 	}
 	else {
 
-		init = new Area;
-		Current_Code++;
-		init->code = Current_Code;
-		init->symbol = symbol;
-		init->color = color;
-		init->previous = before;
-		init->title = title;
-		init->description = description;
+
 
 		switch (coordinate) {
-		case 1:
+		case 0:
 			if (before->north == nullptr)
 			{
-				init->yx.first = before->yx.first++;
+
+				init = new Area;
+				Current_Code++;
+				init->code = Current_Code;
+				init->symbol = symbol;
+				init->color = color;
+				init->previous = before;
+				init->title = title;
+				init->description = description;
+				init->yx.first = --(before->yx.first);
 				init->yx.second = before->yx.second;
 				Exists[init->yx] = init;
-				before->north = init; cout << "\nbefore->north node++\n";
+
 				init->south = before;
+				before->north = init; cout << "\nbefore->north node++\n";
+				
+				out = init->yx;
 				Node_Count++;
 				return 1;
 			}
-		case 2:
+			else
+				before = before->north;
+			break;
+		case 1:
 			if (before->east == NULL)
 			{
+				init = new Area;
+				Current_Code++;
+				init->code = Current_Code;
+				init->symbol = symbol;
+				init->color = color;
+				init->previous = before;
+				init->title = title;
+				init->description = description;
 				init->yx.first = before->yx.first;
-				init->yx.second = before->yx.second++;
+				init->yx.second = ++(before->yx.second);
 				Exists[init->yx] = init;
-				before->east = init; cout << "\nbefore->east node++\n";
 				init->west = before;
+				before->east = init; cout << "\nbefore->east node++\n";
+				
+				out = init->yx;
 				Node_Count++;
 				return 1;
-			}
-		case 3:
+			} 
+			else
+				//before = before->east;
+			//break;
+		case 2:
 			if (before->south == NULL)
 			{
-				init->yx.first = before->yx.first--;
+				init = new Area;
+				Current_Code++;
+				init->code = Current_Code;
+				init->symbol = symbol;
+				init->color = color;
+				init->previous = before;
+				init->title = title;
+				init->description = description;
+				init->yx.first = ++(before->yx.first);
 				init->yx.second = before->yx.second;
 				Exists[init->yx] = init;
-				before->south = init; cout << "\nbefore->south node++\n";
 				init->north = before;
+				before->south = init; cout << "\nbefore->south node++\n";
+				
+				out = init->yx;
 				Node_Count++;
 				return 1;
 			}
-		case 4:
+			else
+				//before = before->south;
+			//break;
+		case 3:
 			if (before->west == NULL)
 			{
+				init = new Area;
+				Current_Code++;
+				init->code = Current_Code;
+				init->symbol = symbol;
+				init->color = color;
+				init->previous = before;
+				init->title = title;
+				init->description = description;
 				init->yx.first = before->yx.first;
-				init->yx.second = before->yx.second--;
+				init->yx.second = --(before->yx.second);
 				Exists[init->yx] = init;
-				before->west = init; cout << "\nbefore->west node++\n";
 				init->east = before;
+				before->west = init; cout << "\nbefore->west node++\n";
+				
+				out = init->yx;
 				Node_Count++;
 				return 1;
 			}
-			else {
-				cout << "All node paths are occupied." << endl;
-				return 0;
-			}
-			break;
+			else
+				//before = before->west;
+			//break;
 		default:
 			cout << "All node paths are occupied." << endl;
 			return 0;
 			break;
 		}
-		
+		return 0;
 	}
 	return 0;
 }
@@ -127,11 +186,13 @@ void Graph::Get_Nodes() {
 
 
 
+
+
 Graph::Area* Graph::Connect_Nodes(pair<int,int> yx, int coordinate) {
 	pair<int, int> coordinates;
 	switch (coordinate) {
 	case 1:
-		coordinates.first = ++yx.first;
+		coordinates.first = --yx.first;
 		coordinates.second = yx.second;
 		break;
 	case 2:
@@ -139,7 +200,7 @@ Graph::Area* Graph::Connect_Nodes(pair<int,int> yx, int coordinate) {
 		coordinates.second = ++yx.second;
 		break;
 	case 3:
-		coordinates.first = --yx.first;
+		coordinates.first = ++yx.first;
 		coordinates.second = yx.second;
 		break;
 	case 4:
@@ -147,11 +208,14 @@ Graph::Area* Graph::Connect_Nodes(pair<int,int> yx, int coordinate) {
 		coordinates.second = --yx.second;
 		break;
 	}
-	map<pair<int, int>, Area*>::iterator it;
-	it = Exists.find(coordinates);
-	if (it != Exists.end())
-		return it->second;
-	else return nullptr;
+	//map<pair<int, int>, Area*>::iterator it;
+	
+	if (Exists.find(coordinates) == Exists.end())
+		return nullptr;
+	else {
+		cout << "\n Connecting nodes.. \n";
+		return Exists.at(coordinates);
+	}
 }
 
 void Graph::Display() {
@@ -173,7 +237,7 @@ Graph::Area* Graph::Get_Current() {
 }
 
 void Graph::Set_Current(int option) {
-	Area *ptr = Current;
+	Area *ptr;
 	switch (option) {
 	case 1:
 		ptr = Current->north;
@@ -194,38 +258,82 @@ void Graph::Set_Current(int option) {
 	}
 }
 
+Graph::Area* Graph::Directed_Pointer(int option) {
+	switch (option) {
+	case 0:
+		pointer = temp->north;
+		break;
+	case 1:
+		pointer = temp->east;
+		break;
+	case 2:
+		pointer = temp->south;
+		break;
+	case 3:
+		pointer = temp->west;
+		break;
+	}
+	return pointer;
+}
+
 pair<int, int> Graph::Get_yx(Area* area) {
 	return area->yx;
 }
 
+pair<int, int> Graph::Get_Directed(pair<int,int> yx, int direction) {
+	pair<int, int> temp;
+	switch (direction) {
+	case 0:
+		temp.first = --yx.first;
+		temp.second = yx.second;
+		break;
+	case 1:
+		temp.first = yx.first;
+		temp.second = ++(yx.second);
+		break;
+	case 2:
+		temp.first = ++(yx.first);
+		temp.second = yx.second;
+		break;
+	case 3:
+		temp.first = yx.first;
+		temp.second = --(yx.second);
+		break;
+	}
+	return temp;
+}
 
-int* Graph::Check_Neighbors(Area* before, int existing[]) {
+
+int* Graph::Check_Neighbors(Area& before, int existing[]) {
 		//int node = Randomizer(1, Node_Count);
 	bool condition = false; 
-	if (before->north != nullptr) {
+	if (!&before) {
+		cout << "\n[Area does not exist]\n";
+		return existing;
+	}
+	if (before.north != nullptr) {
 		existing[0] = 1;
 	}
 	else { existing[0] = 0; }
-	if (before->east != nullptr) {
+	if (before.east != nullptr) {
 		existing[1] = 1;
 	}
 	else { existing[1] = 0; }
-	if (before->south != nullptr) {
+	if (before.south != nullptr) {
 		existing[2] = 1;
 	}
 	else { existing[2] = 0; }
-	if (before->west != nullptr) {
+	if (before.west != nullptr) {
 		existing[3] = 1;
 	}
 	else { existing[3] = 0; }
-
 	return existing;
 }
 
 void Graph::Compass(int existing[]) {
 	Colorize Format;
 	int north = 6, east = 6, south = 6, west = 6;
-	int *ex; ex = Check_Neighbors(Get_Current(), existing);
+	int *ex; ex = Check_Neighbors(*Get_Current(), existing);
 	for (int i = 0; i < 4; i++) {
 		if (ex[i] == 1) {
 			switch (i) {
@@ -342,8 +450,8 @@ void Map::Reveal(int player_y, int player_x) {
 			Format.WorldPaint(12, ":");
 			break; //Exit
 		case 10:
-			Format.WorldPaint(6, ".");
-			break;
+			Format.WorldPaint(6, "+");
+			break; //Cross
 		case 11:
 			Format.WorldPaint(13, "=");
 			break;
@@ -380,6 +488,7 @@ int Map::CheckMove(int Move) {
 	Colorize Format;
 	switch (Move) {
 	case 1:
+	case 10:
 		//Format.WorldPaint(4, "The mountain looks difficult to climb, you choose to go elsewhere.\n");
 		return 1;
 		break;

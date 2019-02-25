@@ -30,6 +30,7 @@ private:
 	Area *Start;
 	Area *End;
 	Area *Current;
+	
 	vector<Area> *Listing;
 	vector<pair<int, int>> Visited;
 	
@@ -38,7 +39,7 @@ public:
 	int Node_Count;
 	int Current_Code = 0;
 	map<pair<int, int>, Area*> Exists;
-	Area *temp; Area *init;
+	Area *temp; Area *init; Area *pointer;
 	Area* Get_Start();
 	Area* Get_Current();
 	void Set_Current(int option);
@@ -46,15 +47,17 @@ public:
 	Area* Connect_Nodes(pair<int, int> yx, int coordinate);
 	//pair<int, int> Connect_Nodes();
 	void Create(int y, int x);
-	int Add_Node(Area *before, int code, int symbol, int color, pair<int, int> yx, string title, string description, int coordinate);
+	int Add_Node(Area *before, int code, int symbol, int color, pair<int, int> yx, string title, string description, int coordinate, pair<int,int>& out);
 	void Get_Nodes();
 	void Compass(int existing[]);
+	pair<int, int> Get_Directed(pair<int, int> yx, int direction);
+	Area* Directed_Pointer(int option);
 	//int Get_Code();
 	//int Get_Title();
 
 
 	
-	int* Check_Neighbors(Area *area,int existing[]);
+	int* Check_Neighbors(Area &area,int existing[]);
 	void Display();
 	pair<int, int> Get_yx(Area* a);
 };
