@@ -362,6 +362,37 @@ void Graph::Compass(int existing[]) {
 	Format.WorldPaint(south, "\tS"); cout << endl;
 }
 
+void Graph::DFS_Marker(Area* node, bool visited[])
+{
+	// Mark the current node as visited and 
+	// print it 
+	Listing.push_back(node);
+	//visited[v] = true;
+	//rea* nodearr[4]{ node->north , node->east, node->south, node->west };
+	pair<int,int> temp = node->yx;
+	//Adjacents[temp] = &nodearr;
+	// Recur for all the vertices adjacent 
+	// to this vertex 
+	//list<int>::iterator i;
+	//for (i = adj[v].begin(); i != adj[v].end(); ++i)
+	//	if (!visited[*i])
+	//		DFS_Marker(*i, visited);
+}
+
+// DFS traversal of the vertices reachable from v. 
+// It uses recursive DFSUtil() 
+//void Graph::DFS(int v)
+//{
+//	// Mark all the vertices as not visited 
+//	bool *visited = new bool[V];
+//	for (int i = 0; i < V; i++)
+//		visited[i] = false;
+//
+//	// Call the recursive helper function 
+//	// to print DFS traversal 
+//	//DFS_Marker(v, visited);
+//}
+
 
 //MAP
 Map::Map() {
@@ -511,8 +542,8 @@ int Map::CheckMove(int Move) {
 		return 0;
 		break;
 	default:
-		Format.WorldPaint(4, "You bump the wall, you cannot pass this way.\n");
-		return 0;
+		Format.WorldPaint(4, "The path is dark.\n");
+		return 1;
 		break;
 	}
 	return 1;

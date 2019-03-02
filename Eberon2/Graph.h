@@ -26,18 +26,21 @@ private:
 		Area *south = NULL;
 		Area *west = NULL;
 		Area *previous = NULL;
+		
 	};
+
 	Area *Start;
 	Area *End;
 	Area *Current;
 	
-	vector<Area> *Listing;
+	list<Area*> Listing;
 	vector<pair<int, int>> Visited;
 	
 public:
 	Graph();
 	int Node_Count;
 	int Current_Code = 0;
+	map<pair<int, int>, Area*> Adjacents;
 	map<pair<int, int>, Area*> Exists;
 	Area *temp; Area *init; Area *pointer;
 	Area* Get_Start();
@@ -54,8 +57,8 @@ public:
 	Area* Directed_Pointer(int option);
 	//int Get_Code();
 	//int Get_Title();
-
-
+	void DFS_Marker(Area* node, bool visited[]);
+	void DFS(int node);
 	
 	int* Check_Neighbors(Area &area,int existing[]);
 	void Display();
