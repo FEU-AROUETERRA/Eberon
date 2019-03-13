@@ -12,9 +12,9 @@ string forest_Description = "\nThis forest has seen better days, you reckon.\nYo
 string grass_Description = "\nThe tall grass blocks your vision and your feet sink deep into mud.\nDespite the uneven footing, you can make your way across. Several insects inhabit this marsh.\n";
 string road_Description = "\nThe royal road to New Estera is frequented by merchants and travellers alike.\nYour journey will take you away from the comforts of this castle.\nYou should be able to avoid any monster encounters if you stick to the road.\n";
 string sand_Description = "\nLow sand and gravel make easy travel. Small creatures tend to hide themselves \nunder the pockets of sand here, best avoid resting anytime soon.\nYou quicken your stride.\n";
-string bridge_Description = "\nA thin mist smoothes over the rickety wooden bridge.\nThe river beneath roars furiously, and constantly licks against the railing.\nYou try not to fall through the cracks.\n";
+string bridge_Description = "\n\nA Victory! You've reached the exit of the labyrinth! \n";
 string farm_Description = "\nThis plot of land has been struck by a serious case of drought.]nWhat was once full of greenery and life is now a barren waste.\nPerhaps this was the doing of evil, not nature?\n";
-string door_Description = "\nYou stand before a massive oaken door. \nYou can hear feet shuffling inside, enter?\n";
+string door_Description = "\n\nYou stand at the entrance of the labyrinth. Where will you go?\n";
 
 Room Forest("|Rain Forest", forest_Description, 4);
 Room Grass("|Suspicious Grass", grass_Description, 3);

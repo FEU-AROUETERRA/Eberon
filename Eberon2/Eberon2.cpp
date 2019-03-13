@@ -10,6 +10,7 @@
 #include <iomanip>
 #include <limits>
 #include <array>
+#include <list>
 #include <iterator>
 #include <sstream>
 #include <cctype>
@@ -46,7 +47,7 @@ void Generate_Random(int n, int limit) {
 
 			
 		randomcell = Randomizer(0, 3);
-		int *a = graph.Check_Neighbors(*graph.temp, existing);
+		int *a = graph.Check_Neighbors(graph.temp, existing);
 		cout << "\nRandomcell is " << randomcell;
 		if (a[randomcell] == 0) {
 			//If null neighbor detected, run Add_Node()
@@ -88,14 +89,14 @@ void Generate_Random(int n, int limit) {
 		randomroom = Randomizer(0, 3);
 		cout << "\n Traversing to existing!" << endl;
 		if (randomroom == 0 && existing[0] == 1) {
-			graph.temp = graph.temp->north;
+			graph.temp = graph.temp->Adjacent[NORTH];
 		}
 		else if (randomroom == 1 && existing[1] == 1)
-			graph.temp = graph.temp->east;
+			graph.temp = graph.temp->Adjacent[EAST];
 		else if (randomroom == 2 && existing[2] == 1)
-			graph.temp = graph.temp->south;
+			graph.temp = graph.temp->Adjacent[SOUTH];
 		else if (randomroom == 3 && existing[3] == 1)
-			graph.temp = graph.temp->west;
+			graph.temp = graph.temp->Adjacent[WEST];
 		else if (graph.Node_Count == 1)
 			graph.temp = graph.Get_Start();
 		else 
@@ -108,51 +109,78 @@ void Generate_Fixed(int n, int limit) {
 	int existing[4]; bool passed = false;
 	int randomcell, randomsymbol = Randomizer(1, 7), randomroom;
 	pair<int, int> undirected, directed;
-	//graph.Node_Count = graph.Node_Count + limit;
-	graph.temp = graph.Get_Start();
+	graph.temp = graph.Start;
 	cout << "NC:" << graph.Node_Count;
 	for (graph.Node_Count; graph.Node_Count < limit;) {
 		//Randomize local until null and add nodes
-
-
 		randomcell = Randomizer(0,3);
-		int *a = graph.Check_Neighbors(*graph.temp, existing);
+		int *a = graph.Check_Neighbors(graph.temp, existing);
 		cout << "\n{Randomcell is " << randomcell << endl;
+		for (int i = 0; i < 4; i++) {
+			cout << a[i] << " ";
+		}
+		undirected = graph.Get_yx(graph.temp);
 		if (a[randomcell] == 0) {
 			//If null neighbor detected, run Add_Node()
 			cout << " 0 detected, creating... \n";
 			undirected = graph.Get_yx(graph.temp);
 			//directed = Direct_Node(graph.Get_yx(graph.temp),randomcell);
 
-			if (graph.Node_Count == limit - 1) {
+			if (graph.Node_Count == limit-1) {
 				if (graph.temp == graph.Get_Start()) {
+					cout << "Skip!" << endl;
 					continue;
 				}
-				int type = graph.Add_Node(graph.temp, graph.Current_Code, 9, 12, undirected, "Within the labyrinth", "cell", randomcell, directed);
-				if (type == 1) {
-					if (world.get_Map_Tile(directed.first, directed.second) == 0) {
-						world.Change(directed.first, directed.second, 9);
+				int type;
+				list<int> checked;
+				do {
+					list<int>::iterator iter = find(checked.begin(), checked.end(), randomcell);
+					if (iter != checked.end()) {
+						checked.push_back(randomcell);
 					}
+					if (checked.size() >= 4)
+						break;
+					type = graph.Add_Node(graph.temp, graph.Current_Code, 9, 12, undirected, "Within the labyrinth", "cell", randomcell, directed);
+				} while (type == 3);
+				
+				if (type == 1) {
+					world.Change(directed.first, directed.second, 9);
 					cout << " Created exit! " << endl;
 				}
 				else if (type == 2) {
-					if (world.get_Map_Tile(directed.first, directed.second) == 0) {
-						world.Change(directed.first, directed.second, 10);
-					}
+					world.Change(directed.first, directed.second, 9);
+					cout << " Created exit! " << endl;
 				}
 
 			}
 			else {
-				int type = graph.Add_Node(graph.temp, graph.Current_Code, 1, 3, undirected, "Within the labyrinth", "cell", randomcell, directed);
+				list<int> checked;
+				int type;
+				do {
+					list<int>::iterator iter = find(checked.begin(), checked.end(), randomcell);
+					if (iter != checked.end()) {
+						checked.push_back(randomcell);
+					}
+					if (checked.size() >= 4)
+						break;
+					if (graph.Node_Count == limit / 2) {
+						type = graph.Add_Node(graph.temp, graph.Current_Code, 9, 12, undirected, "Within the labyrinth", "Treasure", randomcell, directed);
+					}
+					else {
+						type = graph.Add_Node(graph.temp, graph.Current_Code, 9, 12, undirected, "Within the labyrinth", "cell", randomcell, directed);
+					}
+				} while (type == 3);
+				
 				if (type == 1) {
-					if (world.get_Map_Tile(directed.first, directed.second) == 0) {
+					if (world.get_Map_Tile(directed.first, directed.second) != 9 || world.get_Map_Tile(directed.first, directed.second) != 8) {
 						world.Change(directed.first, directed.second, 1);
 						cout << " Created node!" << endl;
 					}
 				}
 				else if (type == 2) {
-					if (world.get_Map_Tile(directed.first, directed.second) == 0) {
+					if (world.get_Map_Tile(directed.first, directed.second) != 9 || world.get_Map_Tile(directed.first, directed.second) != 8) {
 						world.Change(directed.first, directed.second, 10);
+						cout << " Created connected node!" << endl;
 					}
 				}
 				else {
@@ -164,35 +192,34 @@ void Generate_Fixed(int n, int limit) {
 		}
 		else {
 			world.Change(undirected.first, undirected.second, 1);
-			//graph.Connect_Nodes(graph.temp->yx, randomcell);
+			cout << " [Cell was occupied] ";
 		}
 		//Randomize neighbor to temp;
 		randomroom = Randomizer(0, 3);
-		cout << "\n Traversing to existing!" << endl;
-		//graph.temp = graph.temp->north;
-		if (randomroom == 0 && existing[0] == 1) {
-			graph.temp = graph.temp->north;
+		
+		if (randomroom == 0 && a[0] == 1 && graph.temp->Adjacent[NORTH] != nullptr) {
+			graph.temp = graph.temp->Adjacent[NORTH];
 			cout << "\n Found north path, moving.. \n";
 		}
-		else if (randomroom == 1 && existing[1] == 1) {
-			graph.temp = graph.temp->east;
+		else if (randomroom == 1 && a[1] == 1 && graph.temp->Adjacent[EAST] != nullptr) {
+			graph.temp = graph.temp->Adjacent[EAST];
 
-			cout << "\n Found north path, moving.. }\n";
+			cout << "\n Found east path, moving.. }\n";
 		}
-		else if (randomroom == 2 && existing[2] == 1) {
-			graph.temp = graph.temp->south;
-			cout << "\n Found north path, moving.. }\n";
+		else if (randomroom == 2 && a[2] == 1 && graph.temp->Adjacent[SOUTH] != nullptr) {
+			graph.temp = graph.temp->Adjacent[SOUTH];
+			cout << "\n Found south path, moving.. }\n";
 		}
-		else if (randomroom == 3 && existing[3] == 1) {
-			graph.temp = graph.temp->west;
-			cout << "\n Found north path, moving.. }\n";
+		else if (randomroom == 3 && a[3] == 1 && graph.temp->Adjacent[WEST] != nullptr) {
+			graph.temp = graph.temp->Adjacent[WEST];
+			cout << "\n Found west path, moving.. }\n";
 		}
+		
 		else if (graph.Node_Count == 1) {
 			graph.temp = graph.Get_Start();
 			cout << "\n Going back to start }\n";
 		}
 		else {
-			//graph.temp = graph.temp->north;
 			cout << "\n No path found, receding.. }\n";
 			graph.temp = graph.temp->previous;
 		}
@@ -201,23 +228,23 @@ void Generate_Fixed(int n, int limit) {
 }
 
 pair<int, int> Direct_Node(pair<int, int> yx, int randomcell) {
-	pair<int, int> temp;
+	pair<int, int> temp, temp2;
 	switch (randomcell) {
 	case 0:
-		temp.first = --yx.first;
-		temp.second = yx.second;
+		temp.first = --temp2.first;
+		temp.second = temp2.second;
 		break;
 	case 1:
-		temp.first = yx.first;
-		temp.second = ++yx.second;
+		temp.first = temp2.first;
+		temp.second = ++temp2.second;
 		break;
 	case 2:
-		temp.first = ++yx.first;
-		temp.second = yx.second;
+		temp.first = ++temp2.first;
+		temp.second = temp2.second;
 		break;
 	case 3:
-		temp.first = yx.first;
-		temp.second = --yx.second;
+		temp.first = temp2.first;
+		temp.second = --temp2.second;
 		break;
 	}
 
@@ -252,16 +279,37 @@ vector<string> Split(string input) {
 }
 
 void Draw_Nodes() {
-	for (auto& x : graph.Exists) {
-		int Y = x.first.first; int X = x.first.second;
-		world.Change(Y, X, 1);
+	//for (auto& x : graph.Exists) {
+	//	int Y = x.first.first; int X = x.first.second;
+	//	world.Change(Y, X, 1);
+	//}
+	set<pair<int, int>> set = graph.BFS(graph.Get_Start());
+	std::set<std::pair<int, int>>::const_iterator it;
+
+	for (it = set.begin(); it != set.end(); it++)
+	{
+		world.Change(it->first, it->second, 1);
+		cout  << " Y: " << it->first << " X: " << it->second << endl;
 	}
 }
 
+void Read() {
+	cout << "\nY: " << graph.Get_Current()->yx.first << " X: " << graph.Get_Current()->yx.second << endl;
+}
+
 void Force_East(int y, int x) {
-
 	//world.Change(y, x, 1);
-
+	set<pair<int,int>> set = graph.BFS(graph.Get_Start());
+	std::set<std::pair<int, int>>::const_iterator it;
+	//for (it = set.begin(); it != set.end; it++) {
+	//	world.Change(it->first, it->second, 1);
+	//	cout << it->first << " " << it->second;
+	//}
+	for (it = set.begin(); it != set.end(); it++)
+	{
+		world.Change(it->first, it->second, 1);
+		cout << it->first << " " << it->second;
+	}
 }
 
 void Receive_Command() {
@@ -298,11 +346,11 @@ void Receive_Command() {
 			ordinate_y = player.get_Position()[0] - 1; ordinate_x = player.get_Position()[1];
 			tile = world.get_Map_Tile(ordinate_y, ordinate_x);
 			if (world.CheckMove(tile) == 1) {
-				int *ex = graph.Check_Neighbors(*graph.Get_Current(), existing);
+				int *ex = graph.Check_Neighbors(graph.Get_Current(), existing);
 				if (ex[option - 1] != 1) {
 					Format.Paint(8, "\n There is no path from here to there.", "\n");
 					for (int i = 0; i < 4; i++) {
-						cout << endl << graph.Check_Neighbors(*graph.Get_Current(), existing)[i] << endl ;
+						cout << endl << graph.Check_Neighbors(graph.Get_Current(), existing)[i] << endl ;
 					}
 					return;
 				}
@@ -323,11 +371,11 @@ void Receive_Command() {
 			ordinate_y = player.get_Position()[0]; ordinate_x = player.get_Position()[1] + 1;
 			tile = world.get_Map_Tile(ordinate_y, ordinate_x);
 			if (world.CheckMove(tile) == 1) {
-				int *ex = graph.Check_Neighbors(*graph.Get_Current(), existing);
+				int *ex = graph.Check_Neighbors(graph.Get_Current(), existing);
 				if (ex[option - 1] != 1) {
 					Format.Paint(8, "\n There is no path from here to there.", "\n");
 					for (int i = 0; i < 4; i++) {
-						cout << endl << graph.Check_Neighbors(*graph.Get_Current(), existing)[i] << endl;
+						cout << endl << graph.Check_Neighbors(graph.Get_Current(), existing)[i] << endl;
 					}
 					return;
 				}
@@ -347,11 +395,11 @@ void Receive_Command() {
 			ordinate_y = player.get_Position()[0] + 1; ordinate_x = player.get_Position()[1];
 			tile = world.get_Map_Tile(ordinate_y, ordinate_x);
 			if (world.CheckMove(tile) == 1) {
-				int *ex = graph.Check_Neighbors(*graph.Get_Current(), existing);
+				int *ex = graph.Check_Neighbors(graph.Get_Current(), existing);
 				if (ex[option - 1] != 1) {
 					Format.Paint(8, "\n There is no path from here to there.", "\n");
 					for (int i = 0; i < 4; i++) {
-						cout << endl << graph.Check_Neighbors(*graph.Get_Current(), existing)[i] << endl;
+						cout << endl << graph.Check_Neighbors(graph.Get_Current(), existing)[i] << endl;
 					}
 					return;
 				}
@@ -372,11 +420,11 @@ void Receive_Command() {
 			ordinate_y = player.get_Position()[0]; ordinate_x = player.get_Position()[1] - 1;
 			tile = world.get_Map_Tile(ordinate_y, ordinate_x);
 			if (world.CheckMove(tile) == 1) {
-				int *ex = graph.Check_Neighbors(*graph.Get_Current(), existing);
+				int *ex = graph.Check_Neighbors(graph.Get_Current(), existing);
 				if (ex[option - 1] != 1) {
 					Format.Paint(8, "\n There is no path from here to there.", "\n");
 					for (int i = 0; i < 4; i++) {
-						cout << endl << graph.Check_Neighbors(*graph.Get_Current(), existing)[i] << endl;
+						cout << endl << graph.Check_Neighbors(graph.Get_Current(), existing)[i] << endl;
 					}
 					return;
 				}
@@ -398,7 +446,7 @@ void Receive_Command() {
 			Sleep(1500);
 			//Format.Pseudo_Clear(1);
 			world.Reveal(player.get_Position()[0], player.get_Position()[1]);
-			int *ex = graph.Check_Neighbors(*graph.Get_Current(), existing);
+			int *ex = graph.Check_Neighbors(graph.Get_Current(), existing);
 			graph.Compass(ex);
 		}
 		else if (option == 6) {
@@ -411,7 +459,7 @@ void Receive_Command() {
 
 			Sleep(1500);
 			
-			graph.Get_Nodes();
+			Read();
 		}
 		else if (option == 8) {
 		Format.Paint(7, "\n Force ", "\n");
@@ -470,12 +518,15 @@ void WorldView() {
 	cin >> node_number;
 	cout << "\nYour world is being generated... \n";
 	//Generate_Random(20, node_number);
+	world.Change(20, 15, 8);
 	Generate_Fixed(20, node_number);
+	world.Change(20, 15, 8);
 	//Generate_Random(20, node_number);
 	//graph.Add_Node(graph.Get_Start(), graph.Current_Code, 1, 3, , "Within the labyrinth", "cell", randomcell, directed)
 	world.Reveal((player.get_Position()[0]), (player.get_Position()[1]));
 	Format.Paint(15, "\n You may now freely enter any valid command: ", "\n");
 	cout << " The "; 	Format.Paint(13, "@", ""); cout << " symbol denotes your player position on the map. Try moving around!" << endl;
+	graph.Current = graph.Get_Start();
 	while (!(isValid)) {
 		//Attribute();
 		Receive_Command();

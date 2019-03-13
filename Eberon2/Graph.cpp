@@ -2,6 +2,7 @@
 #include "Painter.h"
 #include "Player.h"
 const int cX = 40, cY = 35;
+using namespace std;
 
 Graph::Graph() {}
 
@@ -22,9 +23,10 @@ void Graph::Create(int y, int x)
 	init->title = "Starting area.";
 	init->description = "This place.";
 	init->previous = init;
-	Exists[init->yx] = init;
+	Exists[init->yx] = *init;
 	Current = Start = init;
 	Node_Count++;
+	Current_Code++;
 	cout << "\nStart node created.\n";
 }
 
@@ -36,68 +38,72 @@ int Graph::Add_Node(Area *before, int code, int symbol, int color, pair<int, int
 	if ((directed.first < 0 || directed.first > cX) || (directed.second < 0 || directed.second > cY)) {
 		return 0;
 	}
-	
+
 	Area* ptr = Connect_Nodes(yx, coordinate);
-
-	if (ptr != nullptr) {
-
+	//before->yx = yx;
+	if (ptr != nullptr && Contiguous_Paths == true) {
+		//ptr->yx = Get_Directed(before->yx, coordinate);
 		switch (coordinate) {
 		case 0:
-			before->north = ptr;
-			ptr->south = before; 
+			before->Adjacent[NORTH] = ptr;
+			ptr-> Adjacent[SOUTH] = before;
 			return 2;
 			break;
 		case 1:
-			before->east = ptr;
-			ptr->west = before;
+			before->Adjacent[EAST] = ptr;
+			ptr->Adjacent[WEST] = before;
 			return 2;
 			break;
 		case 2:
-			before->south = ptr;
-			ptr->north = before; 
+			before->Adjacent[SOUTH] = ptr;
+			ptr->Adjacent[NORTH] = before;
 			return 2;
 			break;
 		case 3:
-			before->west = ptr; 
-			ptr->east = before; 
+			before->Adjacent[WEST] = ptr;
+			ptr->Adjacent[EAST] = before;
 			return 2;
 			break;
 		}
 	}
 	else {
-
-
-
+		pair<int, int> temp = before->yx;
 		switch (coordinate) {
 		case 0:
-			if (before->north == nullptr)
+			if (before->Adjacent[NORTH] == nullptr)
 			{
-
+				cout << "\nCreating north node...\n";
 				init = new Area;
 				Current_Code++;
+				
 				init->code = Current_Code;
 				init->symbol = symbol;
 				init->color = color;
 				init->previous = before;
 				init->title = title;
 				init->description = description;
-				init->yx.first = --(before->yx.first);
-				init->yx.second = before->yx.second;
-				Exists[init->yx] = init;
+				init->yx.first = --(temp.first);
+				init->yx.second = temp.second;
+				Exists[init->yx] = *init;
+				cout << before->yx.first << " " << before->yx.second << "," << init->yx.first  << " "<<  init->yx.second<< endl;
+				cout << "\nCreating north node...\n";
 
-				init->south = before;
-				before->north = init; cout << "\nbefore->north node++\n";
+				init->Adjacent[SOUTH] = before;
+				before->Adjacent[NORTH] = init; 
 				
 				out = init->yx;
 				Node_Count++;
+				cout << "\nNorth node created.\n";
 				return 1;
 			}
 			else
-				before = before->north;
+				return 3;
 			break;
 		case 1:
-			if (before->east == NULL)
+			if (before->Adjacent[EAST] == NULL)
 			{
+				cout << "\nCreating east node...\n";
+
 				init = new Area;
 				Current_Code++;
 				init->code = Current_Code;
@@ -106,22 +112,27 @@ int Graph::Add_Node(Area *before, int code, int symbol, int color, pair<int, int
 				init->previous = before;
 				init->title = title;
 				init->description = description;
-				init->yx.first = before->yx.first;
-				init->yx.second = ++(before->yx.second);
-				Exists[init->yx] = init;
-				init->west = before;
-				before->east = init; cout << "\nbefore->east node++\n";
+				init->yx.first = temp.first;
+				init->yx.second = ++(temp.second);
+				Exists[init->yx] = *init;
+				init->Adjacent[WEST] = before;
+				before->Adjacent[EAST] = init; 
+				cout << before->yx.first << " " << before->yx.second << "," << init->yx.first << " " << init->yx.second << endl;
 				
 				out = init->yx;
 				Node_Count++;
+				cout << "\nEast node created.\n";
+
 				return 1;
 			} 
 			else
-				//before = before->east;
-			//break;
+				return 3;
+			break;
 		case 2:
-			if (before->south == NULL)
+			if (before->Adjacent[SOUTH] == NULL)
 			{
+				cout << "\nCreating south node...\n";
+
 				init = new Area;
 				Current_Code++;
 				init->code = Current_Code;
@@ -130,22 +141,26 @@ int Graph::Add_Node(Area *before, int code, int symbol, int color, pair<int, int
 				init->previous = before;
 				init->title = title;
 				init->description = description;
-				init->yx.first = ++(before->yx.first);
-				init->yx.second = before->yx.second;
-				Exists[init->yx] = init;
-				init->north = before;
-				before->south = init; cout << "\nbefore->south node++\n";
-				
+				init->yx.first = ++(temp.first);
+				init->yx.second = temp.second;
+				Exists[init->yx] = *init;
+				init->Adjacent[NORTH] = before;
+				before->Adjacent[SOUTH] = init; 
+				cout << before->yx.first << " " << before->yx.second << "," << init->yx.first << " " << init->yx.second << endl;
 				out = init->yx;
 				Node_Count++;
+				cout << "\nSouth node created.\n";
+
 				return 1;
 			}
 			else
-				//before = before->south;
-			//break;
+				return 3;
+			break;
 		case 3:
-			if (before->west == NULL)
+			if (before->Adjacent[WEST] == NULL)
 			{
+				cout << "\nCreating west node...\n";
+
 				init = new Area;
 				Current_Code++;
 				init->code = Current_Code;
@@ -154,19 +169,21 @@ int Graph::Add_Node(Area *before, int code, int symbol, int color, pair<int, int
 				init->previous = before;
 				init->title = title;
 				init->description = description;
-				init->yx.first = before->yx.first;
-				init->yx.second = --(before->yx.second);
-				Exists[init->yx] = init;
-				init->east = before;
-				before->west = init; cout << "\nbefore->west node++\n";
-				
+				init->yx.first = temp.first;
+				init->yx.second = --(temp.second);
+				Exists[init->yx] = *init;
+				init->Adjacent[EAST] = before;
+				before->Adjacent[WEST] = init; 
+				cout << before->yx.first << " " << before->yx.second << "," << init->yx.first << " " << init->yx.second << endl;
 				out = init->yx;
 				Node_Count++;
+				cout << "\nWest node created.\n";
+
 				return 1;
 			}
 			else
-				//before = before->west;
-			//break;
+				return 3;
+			break;
 		default:
 			cout << "All node paths are occupied." << endl;
 			return 0;
@@ -179,42 +196,88 @@ int Graph::Add_Node(Area *before, int code, int symbol, int color, pair<int, int
 
 void Graph::Get_Nodes() {
 	
-	for (map<pair<int, int>, Area*>::iterator it = Exists.begin(); it != Exists.end(); ++it) {
+	for (map<pair<int, int>, Area>::iterator it = Exists.begin(); it != Exists.end(); ++it) {
 		cout << "\n Node found at: " << it->first.first << " & "<< it->first.second << "\n";
 	}
 }
 
 
+set<pair<int, int>> Graph::BFS(Area* Source) {
+	// Mark all the vertices as not visited 
+	bool *visited = new bool[Node_Count];
+	for (int i = 0; i < Node_Count; i++)
+		visited[i] = false;
+
+	// Create a queue for BFS 
+	list<Area*> queue;
+	map<pair<int,int>, bool> visits;
+
+	// Mark the current node as visited and enqueue it 
+	visits[Source->yx] = true;
+	queue.push_back(Source);
+
+	while (!queue.empty())
+	{
+		// Dequeue a vertex from queue and print it 
+		cout << "\nAt Node: " << Source->code << endl;
+		Source = queue.front();
+		// For world reveal, first popped is first node (Start)
+		print_list.insert(Source->yx);
+		queue.pop_front();
+
+		// Get all adjacent vertices of the dequeued 
+		// vertex s. If a adjacent has not been visited,  
+		// then mark it visited and enqueue it 
+		for (int i = 0; i < 4; i++) {
+			//Get coordinates for directions
+			cout << "\nChecking " << i << endl;
+			if (Source->Adjacent[i] == nullptr) {
+				
+				cout << "\n No Path! \n";
+				continue;
+			}
+			if (Source->Adjacent[i]->code == 0) {
+				Source->Adjacent[i]->yx = Get_Directed(Source->yx, i);
+				cout << "Void node detected";
+			}
+			pair<int, int> temp = Source->Adjacent[i]->yx;
+			cout << Source->Adjacent[i]->code << ">" << endl;
+			//If direction is not visited, mark it visited. Prevents infinite loop.
+			if (visits.find(temp) == visits.end()) {
+				visits[temp] = true;
+				queue.push_back(Source->Adjacent[i]);
+			}
+		}
+	}
+	return print_list;
+}
 
 
-
-Graph::Area* Graph::Connect_Nodes(pair<int,int> yx, int coordinate) {
-	pair<int, int> coordinates;
+Graph::Area* Graph::Connect_Nodes(pair<int, int> yx, int coordinate) {
+	pair<int, int> coordinates, temp = yx;
 	switch (coordinate) {
 	case 1:
-		coordinates.first = --yx.first;
-		coordinates.second = yx.second;
+		coordinates.first = --temp.first;
+		coordinates.second = temp.second;
 		break;
 	case 2:
-		coordinates.first = yx.first;
-		coordinates.second = ++yx.second;
+		coordinates.first = temp.first;
+		coordinates.second = ++temp.second;
 		break;
 	case 3:
-		coordinates.first = ++yx.first;
-		coordinates.second = yx.second;
+		coordinates.first = ++temp.first;
+		coordinates.second = temp.second;
 		break;
 	case 4:
-		coordinates.first = yx.first;
-		coordinates.second = --yx.second;
+		coordinates.first = temp.first;
+		coordinates.second = --temp.second;
 		break;
 	}
-	//map<pair<int, int>, Area*>::iterator it;
-	
 	if (Exists.find(coordinates) == Exists.end())
 		return nullptr;
 	else {
 		cout << "\n Connecting nodes.. \n";
-		return Exists.at(coordinates);
+		return &Exists.at(coordinates);
 	}
 }
 
@@ -222,7 +285,7 @@ void Graph::Display() {
 	int counter = 0; Area *ptr; ptr = Start;
 	do {
 		cout << "\nGetting data of [" << counter << "] = " << ptr->title << endl;
-		ptr = ptr->north; counter++;
+		ptr = ptr->Adjacent[NORTH]; counter++;
 	} while (counter <= 1);
 }
 
@@ -240,19 +303,19 @@ void Graph::Set_Current(int option) {
 	Area *ptr;
 	switch (option) {
 	case 1:
-		ptr = Current->north;
+		ptr = Current->Adjacent[NORTH];
 		Current = ptr;
 		break;
 	case 2:
-		ptr = Current->east;
+		ptr = Current->Adjacent[EAST];
 		Current = ptr;
 		break;
 	case 3:
-		ptr = Current->south;
+		ptr = Current->Adjacent[SOUTH];
 		Current = ptr;
 		break;
 	case 4:
-		ptr = Current->west;
+		ptr = Current->Adjacent[WEST];
 		Current = ptr;
 		break;
 	}
@@ -261,16 +324,16 @@ void Graph::Set_Current(int option) {
 Graph::Area* Graph::Directed_Pointer(int option) {
 	switch (option) {
 	case 0:
-		pointer = temp->north;
+		pointer = temp->Adjacent[NORTH];
 		break;
 	case 1:
-		pointer = temp->east;
+		pointer = temp->Adjacent[EAST];
 		break;
 	case 2:
-		pointer = temp->south;
+		pointer = temp->Adjacent[SOUTH];
 		break;
 	case 3:
-		pointer = temp->west;
+		pointer = temp->Adjacent[WEST];
 		break;
 	}
 	return pointer;
@@ -281,49 +344,49 @@ pair<int, int> Graph::Get_yx(Area* area) {
 }
 
 pair<int, int> Graph::Get_Directed(pair<int,int> yx, int direction) {
-	pair<int, int> temp;
+	pair<int, int> temp, temp2 = yx;
 	switch (direction) {
 	case 0:
-		temp.first = --yx.first;
-		temp.second = yx.second;
+		temp.first = --temp2.first;
+		temp.second = temp2.second;
 		break;
 	case 1:
-		temp.first = yx.first;
-		temp.second = ++(yx.second);
+		temp.first = temp2.first;
+		temp.second = ++(temp2.second);
 		break;
 	case 2:
-		temp.first = ++(yx.first);
-		temp.second = yx.second;
+		temp.first = ++(temp2.first);
+		temp.second = temp2.second;
 		break;
 	case 3:
-		temp.first = yx.first;
-		temp.second = --(yx.second);
+		temp.first = temp2.first;
+		temp.second = --(temp2.second);
 		break;
 	}
 	return temp;
 }
 
 
-int* Graph::Check_Neighbors(Area& before, int existing[]) {
+int* Graph::Check_Neighbors(Area* before, int existing[]) {
 		//int node = Randomizer(1, Node_Count);
 	bool condition = false; 
-	if (!&before) {
+	if (!before) {
 		cout << "\n[Area does not exist]\n";
 		return existing;
 	}
-	if (before.north != nullptr) {
+	if (before->Adjacent[NORTH] != NULL) {
 		existing[0] = 1;
 	}
 	else { existing[0] = 0; }
-	if (before.east != nullptr) {
+	if (before->Adjacent[EAST] != NULL) {
 		existing[1] = 1;
 	}
 	else { existing[1] = 0; }
-	if (before.south != nullptr) {
+	if (before->Adjacent[SOUTH] != NULL) {
 		existing[2] = 1;
 	}
 	else { existing[2] = 0; }
-	if (before.west != nullptr) {
+	if (before->Adjacent[WEST] != NULL) {
 		existing[3] = 1;
 	}
 	else { existing[3] = 0; }
@@ -333,7 +396,7 @@ int* Graph::Check_Neighbors(Area& before, int existing[]) {
 void Graph::Compass(int existing[]) {
 	Colorize Format;
 	int north = 6, east = 6, south = 6, west = 6;
-	int *ex; ex = Check_Neighbors(*Get_Current(), existing);
+	int *ex; ex = Check_Neighbors(Get_Current(), existing);
 	for (int i = 0; i < 4; i++) {
 		if (ex[i] == 1) {
 			switch (i) {
@@ -362,36 +425,7 @@ void Graph::Compass(int existing[]) {
 	Format.WorldPaint(south, "\tS"); cout << endl;
 }
 
-void Graph::DFS_Marker(Area* node, bool visited[])
-{
-	// Mark the current node as visited and 
-	// print it 
-	Listing.push_back(node);
-	//visited[v] = true;
-	//rea* nodearr[4]{ node->north , node->east, node->south, node->west };
-	pair<int,int> temp = node->yx;
-	//Adjacents[temp] = &nodearr;
-	// Recur for all the vertices adjacent 
-	// to this vertex 
-	//list<int>::iterator i;
-	//for (i = adj[v].begin(); i != adj[v].end(); ++i)
-	//	if (!visited[*i])
-	//		DFS_Marker(*i, visited);
-}
 
-// DFS traversal of the vertices reachable from v. 
-// It uses recursive DFSUtil() 
-//void Graph::DFS(int v)
-//{
-//	// Mark all the vertices as not visited 
-//	bool *visited = new bool[V];
-//	for (int i = 0; i < V; i++)
-//		visited[i] = false;
-//
-//	// Call the recursive helper function 
-//	// to print DFS traversal 
-//	//DFS_Marker(v, visited);
-//}
 
 
 //MAP
